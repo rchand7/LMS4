@@ -29,7 +29,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: "http://localhost:5173", // Adjust based on your client app's URL
+    origin: "https://lms4-ud58.onrender.com", // Adjust based on your client app's URL
     credentials: true,
   })
 );
