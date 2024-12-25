@@ -11,11 +11,11 @@ import courseProgressRoute from "./routes/courseProgress.route.js";
 import path from "path";
 import { fileURLToPath } from "url"; // Import fileURLToPath for ES modules
 
-// Define __filename and __dirname
+// Define __filename and __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-dotenv.config({});
+dotenv.config();
 
 // Call database connection here
 connectDB();
@@ -29,7 +29,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "http://localhost:5173", // Adjust based on your client app's URL
     credentials: true,
   })
 );
@@ -41,13 +41,16 @@ app.use("/api/v1/course", courseRoute);
 app.use("/api/v1/purchase", purchaseRoute);
 app.use("/api/v1/progress", courseProgressRoute);
 
-// Serve the static files from the frontend build
-app.use(express.static(path.join(__dirname, "/client/dist")));
-
-// Catch-all route to serve the frontend's index.html file for any unmatched route
-app.get("*", (_, res) => {
-  res.sendFile(path.resolve(__dirname, "client", "dist", "index.html"));
-});
+// Serve static files for production (client build folder)
+if (process.env.NODE_ENV === "production") {
+  // Serve the static files from the frontend build (client/dist)
+  app.use(express.static(path.join(__dirname, "../client/dist")));
+  
+  // Catch-all route to serve the frontend's index.html file for any unmatched route
+  app.get("*", (_, res) => {
+    res.sendFile(path.resolve(__dirname, "../client", "dist", "index.html"));
+  });
+}
 
 app.listen(PORT, () => {
   console.log(`Server listening at port ${PORT}`);
