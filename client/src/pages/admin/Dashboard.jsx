@@ -4,49 +4,49 @@ import React from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 const Dashboard = () => {
+  const { data, isSuccess, isError, isLoading } = useGetPurchasedCoursesQuery();
 
-  const {data, isSuccess, isError, isLoading} = useGetPurchasedCoursesQuery();
+  if (isLoading) return <h1>Loading...</h1>;
+  if (isError) return <h1 className="text-red-500">Failed to get purchased course</h1>;
 
-  if(isLoading) return <h1>Loading...</h1>
-  if(isError) return <h1 className="text-red-500">Failed to get purchased course</h1>
+  // Safely extract purchased courses or provide a default empty array
+  const purchasedCourse = data?.purchasedCourse || [];
 
-  //
-  const {purchasedCourse} = data || [];
+  // Ensure that there are courses available for displaying
+  const courseData = purchasedCourse.map((course) => ({
+    name: course.courseId.courseTitle,
+    price: course.courseId.coursePrice,
+  }));
 
-  const courseData = purchasedCourse.map((course)=> ({
-    name:course.courseId.courseTitle,
-    price:course.courseId.coursePrice
-  }))
-
-  const totalRevenue = purchasedCourse.reduce((acc,element) => acc+(element.amount || 0), 0);
-
+  const totalRevenue = purchasedCourse.reduce((acc, element) => acc + (element.amount || 0), 0);
   const totalSales = purchasedCourse.length;
+
   return (
-    <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 ">
+    <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      {/* Total Sales Card */}
       <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
         <CardHeader>
           <CardTitle>Total Sales</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold text-blue-600">{totalSales}</p>
+          <p className="text-3xl font-bold text-blue-600">{totalSales || 0}</p>
         </CardContent>
       </Card>
 
+      {/* Total Revenue Card */}
       <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300">
         <CardHeader>
           <CardTitle>Total Revenue</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold text-blue-600">{totalRevenue}</p>
+          <p className="text-3xl font-bold text-blue-600">₹{totalRevenue.toLocaleString()}</p>
         </CardContent>
       </Card>
 
-      {/* Course Prices Card */}
+      {/* Course Prices Chart Card */}
       <Card className="shadow-lg hover:shadow-xl transition-shadow duration-300 col-span-1 sm:col-span-2 md:col-span-3 lg:col-span-4">
         <CardHeader>
-          <CardTitle className="text-xl font-semibold text-gray-700">
-            Course Prices
-          </CardTitle>
+          <CardTitle className="text-xl font-semibold text-gray-700">Course Prices</CardTitle>
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={250}>
@@ -60,7 +60,10 @@ const Dashboard = () => {
                 interval={0} // Display all labels
               />
               <YAxis stroke="#6b7280" />
-              <Tooltip formatter={(value, name) => [`₹${value}`, name]} />
+              <Tooltip
+                formatter={(value, name) => [`₹${value.toLocaleString()}`, name]}
+                labelFormatter={(label) => `Course: ${label}`}
+              />
               <Line
                 type="monotone"
                 dataKey="price"
